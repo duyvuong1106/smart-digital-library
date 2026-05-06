@@ -4,7 +4,7 @@ export const endpoints = {
     'categories': '/categories/',
     'documents': '/documents/',
     'register': '/users/', 
-    'login': 'o/application/', 
+    'login': '/o/application/', 
     'current-user': '/users/current-user/', 
     
 
