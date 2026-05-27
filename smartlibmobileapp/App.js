@@ -6,9 +6,10 @@ import { Icon } from "react-native-paper";
 import Register from "./screens/User/Register";
 import { NavigationContainer } from "@react-navigation/native";
 import Home from "./screens/Home/Home";
-import Documents from "./screens/Home/Documents";
-import DocumentDetails from "./screens/Home/DocumentDetails";
+import Documents from "./screens/Document/Documents";
+import DocumentDetails from "./screens/Document/DocumentDetails";
 import Login from "./screens/User/Login";
+import { MyUserReducer } from "./reducers/Reducers";
 
 
 
@@ -28,6 +29,8 @@ const StackNavigator = () => {
 const Tab = createNativeBottomTabNavigator();
 
 const TabNavigator = () => {
+  const [user, ] = useContext(MyUSerContext);
+
   return(
     <Tab.Navigator>
       <Tab.Screen name="home" component={StackNavigator} options={{title: 'Màn hình chính', tabBarIcon:() => <Icon source="home" size={20} />}} />
@@ -42,6 +45,8 @@ const TabNavigator = () => {
 
 
 const App = () => { 
+
+  const [user, dispatch] = useReducer(MyUserReducer, null);
   return(
     <NavigationContainer>
       <TabNavigator />

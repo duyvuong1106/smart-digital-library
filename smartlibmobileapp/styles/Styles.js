@@ -1,32 +1,64 @@
- import { StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
     container: {
         flex: 1,
-        marginTop: 50
-    }, 
-    row: {
-        flexDirection: "row"
+        backgroundColor: "#f8f9fa",
+        padding: 10
     },
-    wrap: { 
+    row: {
+        flexDirection: "row",
+        alignItems: "center"
+    },
+    wrap: {
         flexWrap: "wrap"
     },
+    marginVertical: {
+        marginVertical: 8
+    },
     padding: {
-        padding: 5
+        padding: 4
     },
-    margin: {
-        margin: 5
+    card: {
+        marginBottom: 12,
+        backgroundColor: "#fff",
+        elevation: 2
     },
-    subject: {
-        fontSize: 24,
-        fontWeight: "bold",
-        color: "blue",
-        textAlign: "center",
-        marginTop: 5
-    },
-    avatar: {
+    image: {
         width: 80,
-        height: 80,
-        borderRadius: 50
+        height: 110,
+        borderRadius: 4,
+        marginRight: 12
+    },
+    detailImage: {
+        width: "100%",
+        height: 260,
+        resizeMode: "contain",
+        backgroundColor: "#e9ecef"
+    },
+    bold: {
+        fontWeight: "bold"
+    },
+    price: {
+        color: "#2e7d32",
+        fontWeight: "bold"
+    },
+    free: {
+        color: "#1565c0",
+        fontWeight: "bold"
+    },
+    center: {
+        justifyContent: "center",
+        alignItems: "center"
+    },
+    starRow: {
+        flexDirection: "row",
+        marginVertical: 4
+    },
+    reviewBox: {
+        padding: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: "#dee2e6",
+        backgroundColor: "#fff"
     }
 });

@@ -1,5 +1,5 @@
 import { useNavigation } from "@react-navigation/native";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Apis, { endpoints } from "../../configs/Apis";
 import { Button, Image, Text, TouchableOpacity, View } from "react-native";
 import { HelperText, TextInput } from "react-native-paper";
@@ -11,31 +11,31 @@ import * as ImagePicker from 'expo-image-picker';
 const Register = () => {
     const userInfo = [{
         field: 'first_name',
-        title: 'Tên',
+        label: 'Tên',
         icon: 'text',
     }, {
         field: 'last_name',
-        title: 'Họ và tên lót',
+        label: 'Họ và tên lót',
         icon: 'text',
     }, {
         field: 'username',
-        title: 'Tên đăng nhập',
+        label: 'Tên đăng nhập',
         icon: 'account',
     }, {
         field: 'password',
-        title: 'Mật khẩu',
+        label: 'Mật khẩu',
         icon: 'eye',
         secureTextEntry: true
     }, {
         field: 'confirm',
-        title: 'Xác nhận mật khẩu',
+        label: 'Xác nhận mật khẩu',
         icon: 'eye',
         secureTextEntry: true
     }];
 
 
     const [user, setUser] = useState({});
-    const [err , setErr] = useState(null);
+    const [err , setErr] = useState();
     const nav = useNavigation(); 
     const [loading, setLoading] = useState(false);
 
@@ -55,72 +55,76 @@ const Register = () => {
     }
 
 
-    const validate = () => {
-        if(!user.username){ 
-            setErr('Vui lòng điền tên đăng nhập');
-        }else if (!user.password || !user.confirm || user.password !== user.confirm){ 
-            setErr('Mật khẩu không khớp');
-        }else return true;
+     const validate = () => {
+        for (var i of userInfo)
+            if (!(i.field in user) || !user[i.field]) {
+                setErr(`Vui lòng nhập ${i.label}!`);
+                return false;
+            } 
+            
+        if (user.password !== user.confirm) {
+                setErr("Mật khẩu không khớp");
+                return false;
+            }
+
+        return true;
     }
 
     const register = async () => { 
-        if(validate()===true){ 
-            let form = new FormData(); 
-
+        if (validate() === true) {
+            setErr("");
             try {
-                setLoading(true); 
-                setErr(null);
+                setLoading(true);
 
-                for(var key in Object.keys(user)){ 
-                    if(key !== 'confirm'){ 
-                        form.append(key, { 
-                            uri: user.avatar.uri, 
-                            name: user.avatar.fileName,
-                            type: "image/jpeg"  //user.avatar.type//
-                        }); 
+                let form = new FormData();
+                for (let key of Object.keys(user)) {
+                    if (key !== 'confirm') {
+                        if (key === 'avatar') {
+                            form.append('avatar', {
+                                uri: user.avatar.uri,
+                                name: user.avatar.fileName,
+                                type: "image/jpeg" //user.avatar.type
+                            });
+                        } else
+                            form.append(key, user[key]);
                     }
                 }
 
-                let res = await Apis.post(endpoints['regisrter'], form, { 
-                    headers: { 
+                let res = await Apis.post(endpoints['register'], form, {
+                    headers: {
                         'Content-Type': 'multipart/form-data'
                     }
-                })
-
-
-                if (res.status === 201){ 
+                });
+                if (res.status === 201)
                     nav.navigate('login');
-                }else alert('Đăng ký thất bại');
-
-
+                else
+                    alert("Hệ thống có lỗi!");
             } catch (ex) {
-                console.error(ex);
-            }finally {
+
+            } finally {
                 setLoading(false);
             }
         }
     }
 
     return(
-        <View>
-            <HelperText style={Styles.margin} type="error" visible={!!err}> 
-                {err}
-            </HelperText>
-            {userInfo.map(u => <TextInput value={user[u.field]} key={u.field}
-                                            onChangeText={(t) => setUser({...user, [u.field]: t})}
-                                            style={Styles.margin} label={u.title} placeholder={u.title}
-                                            secureTextEntry={u.secureTextEntry}
-                                            right={<TextInput.Icon icon={u.icon} />}/>)}
+        <ScrollView style={Styles.padding}>
+            {err && <HelperText type="error" visible={err}>{err}</HelperText>}
+            {userInfo.map(i => <TextInput key={i.field} style={Styles.margin} 
+                                        value={user[i.field]} onChangeText={t => setUser({...user, [i.field]: t})}
+                                        label={i.label}
+                                        secureTextEntry={i.secureTextEntry}
+                                        right={<TextInput.Icon icon={i.icon} />} />)}
 
-
-            <TouchableOpacity onPress={picker}> 
+            <TouchableOpacity onPress={picker}>
                 <Text style={Styles.margin}>Chọn ảnh đại diện...</Text>
             </TouchableOpacity>
 
             {user.avatar && <Image source={{uri: user.avatar.uri}} style={[Styles.avatar, Styles.margin]} />}
 
-            <Button loading={loading} disabled={loading} mode="contained" onPress={register}>Đăng ký</Button>
-        </View>
+            <Button loading={loading} disabled={loading} onPress={register} 
+                    style={Styles.margin} mode="contained">Đăng ký</Button>
+        </ScrollView>
     ); 
 }
 

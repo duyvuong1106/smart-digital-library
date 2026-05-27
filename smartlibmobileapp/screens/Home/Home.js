@@ -14,7 +14,15 @@ const Home = () => {
     const [loading, setLoading] = useState(false);
     const [q, setQ] = useState("");
     const [page, setPage] = useState(1); 
+    const [, dispatch] = useContext(MyUSerContext);
     const nav = useNavigation(); 
+
+    const handleLogout = () => {
+        dispatch({ 
+            "type": "LOGOUT"
+        })
+        nav.navigate('login');
+    }
 
     const loadDocuments = async () => { 
         try {

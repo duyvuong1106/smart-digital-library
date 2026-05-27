@@ -11,7 +11,7 @@ const Documents = ({route}) => {
     const nav = useNavigation();
 
     const loadDocuments = async () => { 
-        let res = await Apis.get(endpoints['documents'](docId));
+        let res = await Apis.get(endpoints['documents']);
         setDocuments(res.data);
         console.info(res.data);
     }

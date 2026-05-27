@@ -1,4 +1,6 @@
 from rest_framework import serializers
+
+
 from libaries.models import Category, Document, Tag, Payment, Review, User
 
 
@@ -45,13 +47,11 @@ class DocumentDetailSerializer(DocumentSerializer):
         data = super().to_representation(document)
         request = self.context.get('request')
 
+
         if request and request.user and request.user.is_authenticated:
             data['like'] = document.like_set.filter(user=request.user, active=True).exists()
         else:
             data['like'] = False
-
-        if document.is_free == False:
-            data['file'] = "Vui lòng thanh toán"
 
         return data
 
@@ -93,7 +93,7 @@ class UserSerializer(SimpleUserSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
-        fields = ['content', 'rating', 'user', 'document']
+        fields = ['id', 'content', 'rating', 'user', 'document']
         extra_kwargs = {
             'document': {
                 'write_only': True
@@ -103,8 +103,30 @@ class ReviewSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
 
-        data['user'] = UserSerializer(instance.user).data
+        data['user'] = UserSerializer(instance.user, context=self.context).data
 
         return data
+
+
+class CategoryStatsSerializer(serializers.ModelSerializer):
+    total_documents = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Category
+        fields = ['id','name','total_documents']
+
+class DocumentStatsSerializer(serializers.ModelSerializer):
+    borrow_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Document
+        fields = ['id','title','views','borrow_count']
+
+class DashboardStatsSerializer(serializers.Serializer):
+    total_revenue = serializers.FloatField()
+    total_documents = serializers.IntegerField()
+    total_borrows = serializers.IntegerField()
+    category_stats = CategoryStatsSerializer(many=True)
+    top_documents = DocumentStatsSerializer(many=True)
 
 

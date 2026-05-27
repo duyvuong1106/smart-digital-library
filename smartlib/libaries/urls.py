@@ -9,6 +9,7 @@ r.register('categories', views.CategoryViewSet, 'category')
 r.register('documents', views.DocumentViewSet, 'document')
 r.register('users', views.UserViewSet, 'user')
 r.register('payments', views.PaymentViewSet, 'payment')
+r.register('statistics', views.StatsViewSet, 'statistic')
 
 
 urlpatterns = [

@@ -4,14 +4,12 @@ from django.db import models
 
 
 class UserRole(models.IntegerChoices):
-    ADMIN = 1, "Admin"
+    ADMIN = 1 , "Admin"
     READER = 2, "Reader"
     LIBRARIAN = 3, "Librarian"
 
 class PaymentMethod(models.TextChoices):
     CASH = "CASH", "Cash"
-    MOMO = "MOMO", "Momo"
-    ZALOPAY = "ZALOPAY", "ZaloPay"
     PAYPAL = "PAYPAL", "Paypal"
     STRIPE = "STRIPE", "Stripe"
 

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
-from libaries.models import Category, Document, Tag, Review, Payment
+from libaries.models import Category, Document, Tag, Review, Payment, User, BorrowDocument, DocumentView, Like
 
 
 class MyDocumentAdmin(admin.ModelAdmin):
@@ -26,3 +26,7 @@ admin_site.register(Document, MyDocumentAdmin)
 admin_site.register(Tag)
 admin_site.register(Review)
 admin_site.register(Payment)
+admin_site.register(User)
+admin_site.register(BorrowDocument)
+admin_site.register(DocumentView)
+admin_site.register(Like)
