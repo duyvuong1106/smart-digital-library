@@ -67,7 +67,7 @@ class SimpleUserSerializer(serializers.ModelSerializer):
 class UserSerializer(SimpleUserSerializer):
     class Meta:
         model = SimpleUserSerializer.Meta.model
-        fields = SimpleUserSerializer.Meta.fields + ['username', 'password']
+        fields = SimpleUserSerializer.Meta.fields + ['username', 'password', 'role']
         extra_kwargs = {
             'password': {
                 'write_only': True

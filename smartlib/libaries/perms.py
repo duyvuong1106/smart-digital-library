@@ -1,5 +1,5 @@
 from rest_framework import permissions
-from libaries.models import Payment
+from libaries.models import Payment, User
 from libaries.models import UserRole
 
 
@@ -14,7 +14,9 @@ class HasAccessDocument(permissions.BasePermission):
         if not (request.user and request.user.is_authenticated):
             return False
 
-        if (request.user.role == UserRole.LIBRARIAN or request.user.role == UserRole.ADMIN or obj.uploaded_by == request.user
+        if ((request.user.role == UserRole.LIBRARIAN and request.user.is_approved)
+                or request.user.role == UserRole.ADMIN
+                or obj.uploaded_by == request.user
                 or request.user.is_superuser or request.user.is_staff):
             return True
 

@@ -1,92 +1,61 @@
-import { useNavigation } from "@react-navigation/native";
-import { useEffect, useState } from "react";
-import Apis, { endpoints } from "../../configs/Apis";
-import { Button, Image, Text, TouchableOpacity, View } from "react-native";
-import { HelperText, TextInput } from "react-native-paper";
-import Styles from "../../styles/Styles";
+import React, { useState } from "react";
+import { Image, Text, TouchableOpacity, View, ScrollView, StyleSheet } from "react-native"; 
+import { TextInput, Button } from "react-native-paper"; 
 import * as ImagePicker from 'expo-image-picker';
-
+import Apis, { endpoints } from "../../configs/Apis";
+import Styles from "../../styles/Styles";
+import { useNavigation } from "@react-navigation/native"
 
 
 const Register = () => {
-    const userInfo = [{
-        field: 'first_name',
-        label: 'Tên',
-        icon: 'text',
-    }, {
-        field: 'last_name',
-        label: 'Họ và tên lót',
-        icon: 'text',
-    }, {
-        field: 'username',
-        label: 'Tên đăng nhập',
-        icon: 'account',
-    }, {
-        field: 'password',
-        label: 'Mật khẩu',
-        icon: 'eye',
-        secureTextEntry: true
-    }, {
-        field: 'confirm',
-        label: 'Xác nhận mật khẩu',
-        icon: 'eye',
-        secureTextEntry: true
-    }];
-
+    const userInfo = [
+        { field: 'first_name', label: 'Tên', icon: 'text' }, 
+        { field: 'last_name', label: 'Họ và tên lót', icon: 'text' }, 
+        { field: 'username', label: 'Tên đăng nhập', icon: 'account' }, 
+        { field: 'password', label: 'Mật khẩu', icon: 'eye', secureTextEntry: true }, 
+        { field: 'confirm', label: 'Xác nhận mật khẩu', icon: 'eye', secureTextEntry: true }
+    ];
 
     const [user, setUser] = useState({});
-    const [err , setErr] = useState();
-    const nav = useNavigation(); 
     const [loading, setLoading] = useState(false);
+    const [err, setErr] = useState("");
+    const [securePassword, setSecurePassword] = useState(true);
+    const nav = useNavigation();
 
+    const picker = async () => {
+        let { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') return;
+        let result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images });
+        if (!result.canceled) setUser({ ...user, 'avatar': result.assets[0] });
+    };
 
-    const picker = async () => { 
-        let {status} = await ImagePicker.requestMediaLibraryPermissionsAsync(); 
-
-        if(status !== 'granted'){
-            alert("Permission denied");
-        }else{
-            const result = await ImagePicker.launchImageLibraryAsync(); 
-            if(!result.canceled){ 
-                setUser({...user, 'avatar': result.assets[0] })
-            }
-        }
-
+    const validate = () => {
+        if (!user.username)
+            setErr('Vui lòng nhập tên đăng nhập');
+        else if (!user.password || !user.confirm || user.password !== user.confirm)
+            setErr('Mật khẩu KHÔNG không khớp!');
+        else
+            return true;
     }
 
+    const register = async () => {
+        if (validate()) {
+            let form = new FormData();
 
-     const validate = () => {
-        for (var i of userInfo)
-            if (!(i.field in user) || !user[i.field]) {
-                setErr(`Vui lòng nhập ${i.label}!`);
-                return false;
-            } 
-            
-        if (user.password !== user.confirm) {
-                setErr("Mật khẩu không khớp");
-                return false;
-            }
-
-        return true;
-    }
-
-    const register = async () => { 
-        if (validate() === true) {
-            setErr("");
             try {
                 setLoading(true);
 
-                let form = new FormData();
-                for (let key of Object.keys(user)) {
+                for (var key of Object.keys(user)) {
                     if (key !== 'confirm') {
                         if (key === 'avatar') {
-                            form.append('avatar', {
+                            form.append(key, {
                                 uri: user.avatar.uri,
                                 name: user.avatar.fileName,
-                                type: "image/jpeg" //user.avatar.type
+                                type: "image/jpeg" // user.avatar.type // 
                             });
-                        } else
+                        } else {
                             form.append(key, user[key]);
+                        }
                     }
                 }
 
@@ -94,36 +63,47 @@ const Register = () => {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     }
-                });
+                })
                 if (res.status === 201)
                     nav.navigate('login');
                 else
-                    alert("Hệ thống có lỗi!");
+                    alert("Hệ thống đang có lỗi!");
             } catch (ex) {
-
+                console.error(ex);
             } finally {
                 setLoading(false);
             }
         }
     }
 
-    return(
+    return (
         <ScrollView style={Styles.padding}>
-            {err && <HelperText type="error" visible={err}>{err}</HelperText>}
-            {userInfo.map(i => <TextInput key={i.field} style={Styles.margin} 
-                                        value={user[i.field]} onChangeText={t => setUser({...user, [i.field]: t})}
-                                        label={i.label}
-                                        secureTextEntry={i.secureTextEntry}
-                                        right={<TextInput.Icon icon={i.icon} />} />)}
+            {userInfo.map(i => (
+                <TextInput 
+                    key={i.field} 
+                    style={Styles.margin} 
+                    value={user[i.field] || ''} 
+                    onChangeText={t => setUser({ ...user, [i.field]: t })}
+                    label={i.label}
+                    secureTextEntry={i.secureTextEntry}
+                    mode="outlined"
+                    right={<TextInput.Icon icon={i.icon} />} 
+                />
+            ))}
 
-            <TouchableOpacity onPress={picker}>
-                <Text style={Styles.margin}>Chọn ảnh đại diện...</Text>
+            <TouchableOpacity onPress={picker} style={Styles.uploadBtn}>
+                <Text style={{ color: '#1A237E', fontWeight: 'bold' }}>Chọn ảnh đại diện...</Text>
             </TouchableOpacity>
 
-            {user.avatar && <Image source={{uri: user.avatar.uri}} style={[Styles.avatar, Styles.margin]} />}
+            {user.avatar && (
+                <View style={{ alignItems: 'center' }}>
+                    <Image source={{ uri: user.avatar.uri }} style={Styles.previewAvatar} />
+                </View>
+            )}
 
-            <Button loading={loading} disabled={loading} onPress={register} 
-                    style={Styles.margin} mode="contained">Đăng ký</Button>
+            <Button loading={loading} onPress={register} disabled={loading} style={[Styles.btn, { marginTop: 15 }]} mode="contained">
+                Đăng ký
+            </Button>
         </ScrollView>
     ); 
 }

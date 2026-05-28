@@ -21,13 +21,13 @@ const Header = ({cateId, setCateId}) => {
     }, []);
 
     return (
-        <View style={[Styles?.row, Styles?.wrap]}>
-            <TouchableOpacity onPress={() => setCateId(null)} style={Styles?.padding}>
+        <View style={[Styles.row, Styles.wrap]}>
+            <TouchableOpacity onPress={() => setCateId(null)} style={Styles.tagMargin}>
                 <Chip mode={cateId === null ? "contained" : "flat"} icon="label">Tất cả</Chip>
             </TouchableOpacity>
 
             {categories.map(c => (
-                <TouchableOpacity onPress={() => setCateId(c.id)} style={Styles?.padding} key={`c${c.id}`}>
+                <TouchableOpacity onPress={() => setCateId(c.id)} style={Styles.tagMargin} key={`c${c.id}`}>
                     <Chip mode={cateId === c.id ? "contained" : "flat"} icon="label">{c.name}</Chip>
                 </TouchableOpacity>
             ))}

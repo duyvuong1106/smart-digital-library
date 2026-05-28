@@ -32,9 +32,9 @@ class DocumentViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveA
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             return [perms.IsAdmin | perms.IsApprovedLibrarian]
         elif self.action == 'retrieve':
-            return [perms.HasAccessDocument]
+            return [perms.HasAccessDocument()]
 
-        return [permissions.AllowAny]
+        return [permissions.AllowAny()]
 
 
     def perform_create(self, serializer):
@@ -124,7 +124,7 @@ class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
     def current_user(self, request):
         u = request.user
         if request.method == "PATCH":
-            s = serializers.UserSerializer(u, data=request.data, partial=True)
+            s = serializers.SimpleUserSerializer(u, data=request.data, partial=True)
             s.is_valid(raise_exception=True)
             u = s.save()
 
@@ -140,18 +140,32 @@ class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
         return Response({'error': 'NGƯỜI DÙNG KHÔNG PHẢI THỦ THƯ!!!'}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class PaymentViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIView, generics.CreateAPIView):
+class PaymentViewSet(viewsets.ViewSet, generics.CreateAPIView):
     serializer_class = serializers.PaymentSerializer
 
     def get_permissions(self):
-        if self.action == 'stripe_webhook':
-            return [permissions.AllowAny]
-        return [permissions.IsAuthenticated]
 
-    def get_queryset(self):
         if self.action == 'stripe_webhook':
-            return Payment.objects.all().select_related('user','document')
-        return Payment.objects.filter(user=self.request.user).select_related('user','document').order_by('-created_date')
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
+
+
+    @action(methods=['GET'], detail=False, url_path='history')
+    def payment_history(self, request):
+        payments = Payment.objects.filter(user=request.user).select_related('user', 'document').order_by('-created_date')
+        serializer = self.get_serializer(payments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+    @action(methods=['GET'], detail=True, url_path='detail')
+    def payment_detail(self, request, pk=None):
+        try:
+            payment = Payment.objects.select_related('user', 'document').get(pk=pk, user=request.user)
+            serializer = self.get_serializer(payment)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Payment.DoesNotExist:
+            return Response({'error': 'Không tìm thấy thông tin thanh toán này!'}, status=status.HTTP_404_NOT_FOUND)
+
 
     def create(self, request, *args, **kwargs):
         doc_id = request.data.get('id')
@@ -160,11 +174,14 @@ class PaymentViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAP
         try:
             document = Document.objects.get(id=doc_id, active=True)
         except Document.DoesNotExist:
-            return Response({"error":"Tài liệu không tồn tại"},status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Tài liệu không tồn tại"}, status=status.HTTP_404_NOT_FOUND)
 
         if method == 'CASH':
             payment_wait = Payment.objects.create(user=request.user, document=document, amount=document.price, method='CASH', is_success=False)
-            return Response({'msg':'Đăng ký thành công. Vui lòng đến thư viện để thanh toán trực tiếp', 'payment_id':payment_wait.id}, status=status.HTTP_201_CREATED)
+            return Response({
+                'msg': 'Đăng ký thành công. Vui lòng đến thư viện để thanh toán trực tiếp',
+                'payment_id': payment_wait.id
+            }, status=status.HTTP_201_CREATED)
 
         payment_wait = Payment.objects.create(user=request.user, document=document, amount=document.price, method='STRIPE', is_success=False)
         stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -194,7 +211,6 @@ class PaymentViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAP
         except Exception as ex:
             return Response({'error': str(ex)}, status=status.HTTP_400_BAD_REQUEST)
 
-
     @action(methods=['POST'], detail=False, url_path='webhook')
     def stripe_webhook(self, request):
         payload = request.body
@@ -211,7 +227,6 @@ class PaymentViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAP
             return Response(status=status.HTTP_400_BAD_REQUEST)
         except stripe.error.SignatureVerificationError as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-
 
         if event['type'] == 'checkout.session.completed':
             session = event['data']['object']

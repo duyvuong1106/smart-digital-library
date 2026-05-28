@@ -7,7 +7,7 @@ export const endpoints = {
     'document-reviews': (docId) => `/documents/${docId}/reviews/`,
     'add-review': (docId) => `/documents/${docId}/add_review/`,
     'borrow-document': (docId) => `/documents/${docId}/borrow/`,
-    'compare': 'documents/compare/',
+    'compare': '/documents/compare/',
     'register': '/users/', 
     'login': '/o/token/', 
     'current-user': '/users/current-user/', 
@@ -24,7 +24,7 @@ export const OAUTH2_CLIENT = {
 
 export const authApis = (token) => {
     return axios.create({                                                       
-        baseURL: 'http://192.168.1.7:8000/', 
+        baseURL: 'http://192.168.1.6:8000/', 
         headers: { 
             Authorization: `Bearer ${token}`
         }
@@ -33,5 +33,5 @@ export const authApis = (token) => {
 
 
 export default axios.create({
-    baseURL: 'http://192.168.1.7:8000/', 
+    baseURL: 'http://192.168.1.6:8000/', 
 })

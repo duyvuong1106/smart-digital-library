@@ -44,7 +44,7 @@ INSTALLED_APPS = [
 
 ]
 
-ALLOWED_HOSTS=['192.168.1.7', '127.0.0.1']
+ALLOWED_HOSTS=['192.168.1.6', '127.0.0.1']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
